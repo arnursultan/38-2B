@@ -1,100 +1,75 @@
 import sys
+import sqlite3
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget,
-    QLabel, QLineEdit, QPushButton,
-    QCheckBox, QRadioButton, QComboBox,
-    QSpinBox, QTextEdit, QVBoxLayout
+    QApplication,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QLineEdit,
+    QVBoxLayout
+
 )
 
-# QApplication - Запуск всего приложения, главный цикл приложения
-# QMainWindow - Главное окно приложения, основа интерфейса
-# QWidget - Базовый виджет для размещения элементов
-# QLabel - Текстовая надпись
-# QLineEdit - Поле для ввода одной строки
-# QPushButton - Кнопка
-# QCheckBox - Галочка, выбрать/снять
-# QRadioButton - Переключатель, один из вариант нескольких
-# QComboBox - Выпадающий список
-# QSpinBox - Поле выбора числа стрелками
-# QTextEdit - Большое текстовое поле, много строк
-# QVBoxLayout - Вертикальное расположение элементов сверху вниз
-
-class MainWindow(QMainWindow):
+class UserWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("All base widgets")
-        self.resize(400, 500)
-        self.init_ui()
 
-    def init_ui(self):
-        central = QWidget()
-        self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
-        layout.setSpacing(10)
-        layout.setContentsMargins(20, 20, 20, 20)
+        self.setWindowTitle("Урок 4 - PyQt6 + SQlite")
+        self.setGeometry(300, 200, 400, 250)
 
-        layout.addWidget(QLabel("QLabel - просто текст"))
 
-        self.line = QLineEdit()
-        self.line.setPlaceholderText("QLineEdit - введите текст...")
-        layout.addWidget(self.line)
+        self.name_label = QLabel("Имя:")
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Введите имя")
 
-        btn = QPushButton("QPushButton - нажми меня")
-        btn.clicked.connect(self.on_btn)
-        layout.addWidget(btn)
+        self.button = QPushButton("Сохранить в БД")
+        self.button.clicked.connect(self.save_to_db)
 
-        self.check = QCheckBox("QCheckBox - согласен с условиями")
-        layout.addWidget(self.check)
+        self.result = QLabel("")
 
-        layout.addWidget(QLabel("QRadioButton:"))
-        self.radio_m = QRadioButton("Мужской")
-        self.radio_f = QRadioButton("Женский")
-        self.radio_m.setChecked(True)
-        layout.addWidget(self.radio_m)
-        layout.addWidget(self.radio_f)
+        layout = QVBoxLayout()
 
-        self.combo = QComboBox()
-        self.combo.addItems(["Python", "GO", "Java", "JavaScript", "C++", "Dart"])
-        layout.addWidget(self.combo)
 
-        self.spin = QSpinBox()
-        self.spin.setRange(0, 100)
-        self.spin.setValue(21)
-        layout.addWidget(QLabel("QSpinBox - возраст"))
-        layout.addWidget(self.spin)
-
-        self.text = QTextEdit()
-        self.text.setPlaceholderText("QTextEdit - многострочный текст...")
-        self.text.setMaximumHeight(50)
-        layout.addWidget(self.text)
-
-        self.result = QLabel("Нажми кнопку чтобы увидеть значения")
-        self.result.setWordWrap(True)
+        layout.addWidget(self.name_label)
+        layout.addWidget(self.name_input)
+        layout.addWidget(self.button)
         layout.addWidget(self.result)
+        self.setLayout(layout)
 
-    def on_btn(self):
-        gender = "Мужской" if self.radio_m.isChecked() else "Женский"
-        info = (
-            f"Текст: {self.line.text()}\n"
-            f"Чекбокс: {self.check.isChecked()}\n"
-            f"Пол: {gender}\n"
-            f"Язык: {self.combo.currentText()}\n"
-            f"Возраст: {self.spin.value()}\n"
-            f"Описание: {self.text.toPlainText()[:30]}..."
+
+        self.init_db()
+
+    def init_db(self):
+        self.conn =sqlite3.connect('users.db')
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute('''
+                            CREATE TABLE IF NOT EXISTS users (
+                                                                 id INTEGER PRIMARY KEY,
+                                                                 name TEXT NOT NULL
+                            )
+                            ''')
+        self.conn.commit()
+
+
+    def save_to_db(self):
+        name = self.name_input.text()
+
+        if not name:
+            self.result.setText("Введите имя")
+            return
+
+        self.cursor.execute(
+            "INSERT INTO users (name) VALUES (?)",
+            (name,)
         )
-        self.result.setText(info)
 
-def main():
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+        self.conn.commit()
 
-if __name__ == "__main__":
-    main()
+        self.result.setText(f"Имя '{name}' сохранено!")
+        self.name_input.clear()
 
-
-
-
-
-
+app = QApplication(sys.argv)
+window = UserWindow()
+window.show()
+sys.exit(app.exec())
