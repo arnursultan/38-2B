@@ -1,5 +1,7 @@
 import sqlite3
 
+from PyQt6.QtCore.QFileInfo import setFile
+
 
 class PlaylistDB:
 
@@ -55,6 +57,14 @@ class PlaylistDB:
             (f"%{query}%", f"%{query}%")
         )
         return self.cursor.fetchall()
+
+    def update(self, track_id: int, title: str, artist: str, mood: str, rating: int):
+        self.cursor.execute("""
+            UPDATE tracks
+            SET title = ?, artist = ?, mood = ?, rating = ?
+            WHERE id = ?
+        """, (title, artist, mood, rating, track_id))
+        self.conn.commit()
 
     def delete(self, track_id: int):
         self.cursor.execute("DELETE FROM tracks WHERE id = ?", (track_id,))
