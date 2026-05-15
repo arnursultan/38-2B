@@ -1,8 +1,5 @@
 import sqlite3
 
-from PyQt6.QtCore.QFileInfo import setFile
-
-
 class PlaylistDB:
 
     MOODS = ["🔥 Hype", "😌 Chill", "😢 Sad", "💪 Workout"]
@@ -50,6 +47,10 @@ class PlaylistDB:
     def get_all(self) -> list:
         self.cursor.execute("SELECT * FROM tracks ORDER BY rating DESC")
         return self.cursor.fetchall()
+
+    def get_by_id(self, track_id: int):
+        self.cursor.execute("SELECT * FROM tracks WHERE id = ?", (track_id,))
+        return self.cursor.fetchone()
 
     def search(self, query: str) -> list:
         self.cursor.execute(
