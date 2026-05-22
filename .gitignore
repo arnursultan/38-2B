@@ -2,7 +2,6 @@ env
 venv
 .idea
 
-icon.ico
 dist
 build
 lesson9.spec
